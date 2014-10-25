@@ -26,7 +26,10 @@ def v_claim(request):
             tf.write(base64.b64decode(jq["key"]))
             tf.flush()
             out = subprocess.check_output(["gpg","--import", "--status-fd","1", tf.name])
-            ksig = out.splitlines()[0].split()[3]
+            ksig = ""
+            for l in out.splitlines():
+                if l.split()[0] == "[GNUPG:]" and l.split()[1] == "IMPORT_OK":
+                ksig = l.split()[3]
             if len(ksig) != 40:
                 return {"status":"error","message":"problem with key"}
             existing_nm = db.namespaces.find_one({"name":jq["namespace"]})
